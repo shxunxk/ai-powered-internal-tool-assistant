@@ -4,14 +4,12 @@ from sentence_transformers import CrossEncoder
 
 reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
-def retriever(query, types, subtype, formt):
+def retriever(query, types):
     results = collection.query(
         query_texts=[query],
         n_results=20,
         where={
             "type": {"$in": [types]},
-            "subtype": {"$in": [subtype]},
-            "format": {"$in": [formt]}
         }
     )
 

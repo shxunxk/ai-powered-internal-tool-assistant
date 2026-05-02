@@ -7,3 +7,4 @@ user_query = "Where is JWT validation implemented?"
 
 retrievedResult = RetrievalAgent(retriever, RouterLLM, SummaryLLM).run(user_query)
 
+print(retrievedResult)

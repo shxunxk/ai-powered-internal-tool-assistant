@@ -13,7 +13,7 @@ class RetrievalAgent:
         result = self.llm.generate(query)
 
         # STEP 1: retrieve
-        docs = self.retriever(query, k=20)
+        docs = self.retriever(query, result["task"])
 
         # STEP 3: build context
         context = self.build_context(docs)
