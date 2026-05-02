@@ -1,0 +1,2 @@
+def promptGenerator():
+    return prompt
