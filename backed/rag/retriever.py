@@ -39,21 +39,3 @@ def retriever(query, types):
     ]
 
     return top_docs
-
-# def retrieve_docs(query, subtype, format):
-#     results = collection.query(
-#         query_texts=[query],
-#         n_results=5
-#         where={
-#             "type": {
-#                 "$in": ["doc", "docs", "document", "documents"]
-#             }
-#             subtype: {
-#                 "$in": ["log", "logs"]
-#             }
-#             format: {
-#                 "$in": ["json"]
-#             }
-#         }
-#     )
-#     return results

@@ -1,15 +1,20 @@
+import json
+import inspect
 from litellm import completion
-import os
 
 class LLM:
-    def generate(self, query prompt):
+
+    def generate(self, prompt):
 
         response = completion(
             model="deepseek/deepseek-chat",
-            api_key="YOUR_KEY",
+            api_key="YOUR_API_KEY",
             api_base="https://api.deepseek.com",
             messages=[
-                {"role": "user", "content": prompt}
+                {
+                    "role": "user",
+                    "content": prompt
+                }
             ]
         )
 
