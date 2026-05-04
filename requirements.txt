@@ -19,7 +19,7 @@ anyio @ file:///C:/b/abs_847uobe7ea/croot/anyio_1706220224037/work
 appdirs==1.4.4
 archspec @ file:///croot/archspec_1709217642129/work
 argon2-cffi @ file:///opt/conda/conda-bld/argon2-cffi_1645000214183/work
-argon2-cffi-bindings @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/argon2-cffi-bindings_1699549801117/work   
+argon2-cffi-bindings @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/argon2-cffi-bindings_1699549801117/work
 arrow @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/arrow_1699549851004/work
 astroid @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/astroid_1699480418189/work
 astropy @ file:///C:/b/abs_6fb0idwuus/croot/astropy_1717771833599/work
@@ -94,7 +94,7 @@ diskcache==5.6.3
 distributed @ file:///C:/b/abs_27jqurd3gk/croot/distributed_1715844512065/work
 distro @ file:///C:/b/abs_71xr36ua5r/croot/distro_1714488282676/work
 docker==7.1.0
-docstring-to-markdown @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/docstring-to-markdown_1699484265167/work 
+docstring-to-markdown @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/docstring-to-markdown_1699484265167/work
 docstring_parser==0.17.0
 docutils @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/docutils_1699474820579/work
 duckduckgo_search==7.5.2
@@ -104,7 +104,7 @@ et-xmlfile @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/et_xm
 executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 Farama-Notifications==0.0.4
 fastapi==0.115.8
-fastjsonschema @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-fastjsonschema_1699475134300/work        
+fastjsonschema @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-fastjsonschema_1699475134300/work
 ffmpeg==1.4
 ffmpeg-python==0.2.0
 filelock==3.25.2
@@ -373,7 +373,7 @@ PySocks @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/pysocks_
 pytest @ file:///C:/b/abs_een_3z747j/croot/pytest_1717793253670/work
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
-python-json-logger @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-json-logger_1699543626759/work       
+python-json-logger @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/python-json-logger_1699543626759/work
 python-lsp-black @ file:///C:/b/abs_5dhen_5vga/croot/python-lsp-black_1709232962589/work
 python-lsp-jsonrpc @ file:///croot/python-lsp-jsonrpc_1708962872556/work
 python-lsp-server @ file:///C:/b/abs_2cdyzvcq4z/croot/python-lsp-server_1708971796975/work
@@ -493,7 +493,7 @@ transformers==4.41.2
 trl==0.8.6
 truststore @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/truststore_1701881385424/work
 Twisted @ file:///C:/b/abs_e7yqd811in/croot/twisted_1708702883769/work
-twisted-iocpsupport @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/twisted-iocpsupport_1699496891011/work     
+twisted-iocpsupport @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/twisted-iocpsupport_1699496891011/work
 typeguard==4.5.1
 typer==0.12.5
 typing-inspection==0.4.2
