@@ -1,7 +1,2 @@
-# test_torch.py
-
-import torch
-
-print(torch.__version__)
-
-print(torch.rand(2, 3))
+import numpy
+print(numpy.__version__)

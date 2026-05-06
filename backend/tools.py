@@ -1,4 +1,4 @@
-from backed.llm.llmSetUp import LLM
+from llm.llmSetUp import LLM
 
 from rag.retriever import retriever
 

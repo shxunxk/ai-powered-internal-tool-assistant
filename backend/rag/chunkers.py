@@ -159,74 +159,36 @@ def chunk_markdown(
 # YAML
 # =========================
 
-def yaml_chunk(
-    data,
-    path=None,
-    source=None,
-    doc_type=None
-):
-
-    if path is None:
-        path = []
-
+def yaml_chunk(parsed, source, doc_type):
     chunks = []
 
-    if isinstance(data, dict):
+    def flatten(obj, prefix=""):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                yield from flatten(v, f"{prefix}{k}.")
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                yield from flatten(item, f"{prefix}{i}.")
+        else:
+            yield (prefix[:-1], obj)
 
-        for key, value in data.items():
+    flat_items = list(flatten(parsed))
 
-            current_path = path + [key]
+    content_lines = []
 
-            metadata = build_base_metadata(
-                source,
-                doc_type,
-                "yaml"
-            )
+    for key, value in flat_items:
+        content_lines.append(f"{key}: {value}")
 
-            metadata.update({
-
-                "chunk_type": "yaml_section",
-
-                "path": ".".join(current_path),
-            })
-
-            chunks.append({
-
-                "content": yaml.dump(
-                    {key: value}
-                ),
-
-                "metadata": metadata
-            })
-
-            chunks.extend(
-
-                yaml_chunk(
-                    value,
-                    current_path,
-                    source,
-                    doc_type
-                )
-            )
-
-    elif isinstance(data, list):
-
-        for idx, item in enumerate(data):
-
-            current_path = path + [str(idx)]
-
-            chunks.extend(
-
-                yaml_chunk(
-                    item,
-                    current_path,
-                    source,
-                    doc_type
-                )
-            )
+    chunks.append({
+        "content": "\n".join(content_lines),
+        "metadata": {
+            "source": source,
+            "type": doc_type,
+            "format": "yaml"
+        }
+    })
 
     return chunks
-
 
 # =========================
 # JSON

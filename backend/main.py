@@ -1,7 +1,6 @@
-from backed import Tool
+from Tool import Tool
 from Agent import Agent
-from rag.retriever import retriever
-from rag.llm.llmSetUp import LLM
+from llm.llmSetUp import LLM
 from tools import search_code, search_docs, search_records, summarize
 
 if __name__ == "__main__":
