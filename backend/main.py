@@ -5,6 +5,12 @@ from tools import search_code, search_docs, search_records, summarize
 
 if __name__ == "__main__":
 
+    state = {
+        "user_quer":None,
+        "curr_data":None,
+        "prev_data":None
+    }
+
     llm = LLM()
 
     retirieval_tools = [
@@ -21,19 +27,21 @@ if __name__ == "__main__":
     retrieval_agent = Agent(
         tools=retirieval_tools,
         llm=llm
+        state=state
     )
 
     summary_agent = Agent(
         tools = summary_tools,
-        llm = llm
+        state=state
     )
-
+    
     user_query = "Where is JWT validation implemented?"
+    state["user_query"] = user_query
 
-    retrieval_result = retrieval_agent.run(user_query)
+    retrieval_result = retrieval_agent.run(state)
 
-    print(retrieval_result)
+    print("\nRetrieved:\n",retrieval_result)
 
-    final_answer = summary_agent.run(query=retrieval_result)
+    final_answer = summary_agent.run(data=retrieval_result["result"], query = user_query)
 
-    print(final_answer)
+    print("\nFinal:\n",final_answer)

@@ -1,154 +1,117 @@
 import ast
-import yaml
 import json
+import yaml
+import uuid
+import re
 
 
-def build_base_metadata(
-    source,
-    doc_type,
-    language
-):
+# =========================
+# BASE METADATA
+# =========================
 
+def build_base_metadata(source, doc_type, language):
     return {
-
         "source": source,
-
         "doc_type": doc_type,
-
-        "language": language,
+        "language": language
     }
 
 
+def add_chunk_id(metadata):
+    metadata["chunk_id"] = str(uuid.uuid4())
+    return metadata
+
+
+import ast
+import json
+import yaml
+import uuid
+import re
+
+
 # =========================
-# PYTHON
+# BASE METADATA
 # =========================
 
-def chunk_python(
-    data,
-    source=None,
-    doc_type=None
-):
+def build_base_metadata(source, doc_type, language):
+    return {
+        "source": source,
+        "doc_type": doc_type,
+        "language": language
+    }
+
+
+def add_chunk_id(metadata):
+    metadata["chunk_id"] = str(uuid.uuid4())
+    return metadata
+
+
+# =========================
+# PYTHON CHUNKING
+# =========================
+
+def chunk_python(data, source=None, doc_type=None):
 
     tree = ast.parse(data)
+    lines = data.splitlines()
 
     chunks = []
-
-    lines = data.splitlines()
+    used_lines = set()
 
     for node in ast.walk(tree):
 
-        # FUNCTIONS
-
-        if isinstance(
-            node,
-            (
-                ast.FunctionDef,
-                ast.AsyncFunctionDef
-            )
-        ):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
 
             start = node.lineno
             end = node.end_lineno
 
-            chunk = "\n".join(
-                lines[start - 1:end]
-            )
+            used_lines.update(range(start, end + 1))
 
-            metadata = build_base_metadata(
-                source,
-                doc_type,
-                "python"
-            )
+            chunk_text = "\n".join(lines[start - 1:end])
+
+            metadata = build_base_metadata(source, doc_type, "python")
 
             metadata.update({
-
-                "chunk_type": "function",
-
-                "function_name": node.name,
-
+                "chunk_type": (
+                    "function" if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    else "class"
+                ),
+                "name": node.name,
                 "start_line": start,
-
                 "end_line": end,
             })
 
+            chunk_text = chunk_text.strip()
+
+            metadata["text"] = chunk_text
+            metadata = add_chunk_id(metadata)
+
             chunks.append({
-
-                "content": chunk,
-
+                "content": chunk_text,
                 "metadata": metadata
             })
 
-        # CLASSES
+    # 🔥 fallback: global code
+    remaining = [
+        lines[i]
+        for i in range(len(lines))
+        if (i + 1) not in used_lines
+    ]
 
-        elif isinstance(node, ast.ClassDef):
+    if remaining:
+        chunk_text = "\n".join(remaining).strip()
 
-            start = node.lineno
-            end = node.end_lineno
-
-            chunk = "\n".join(
-                lines[start - 1:end]
-            )
-
-            metadata = build_base_metadata(
-                source,
-                doc_type,
-                "python"
-            )
-
-            metadata.update({
-
-                "chunk_type": "class",
-
-                "class_name": node.name,
-
-                "start_line": start,
-
-                "end_line": end,
-            })
-
-            chunks.append({
-
-                "content": chunk,
-
-                "metadata": metadata
-            })
-
-    return chunks
-
-
-# =========================
-# MARKDOWN
-# =========================
-
-def chunk_markdown(
-    data,
-    source=None,
-    doc_type=None
-):
-
-    sections = data.split("\n\n")
-
-    chunks = []
-
-    for idx, section in enumerate(sections):
-
-        metadata = build_base_metadata(
-            source,
-            doc_type,
-            "markdown"
-        )
+        metadata = build_base_metadata(source, doc_type, "python")
 
         metadata.update({
-
-            "chunk_type": "section",
-
-            "section_index": idx,
+            "chunk_type": "global_code",
+            "text": chunk_text
         })
 
+        metadata = add_chunk_id(metadata)
+
         chunks.append({
-
-            "content": section,
-
+            "content": chunk_text,
             "metadata": metadata
         })
 
@@ -156,10 +119,46 @@ def chunk_markdown(
 
 
 # =========================
-# YAML
+# MARKDOWN CHUNKING
+# =========================
+
+def chunk_markdown(data, source=None, doc_type=None):
+
+    # better split by headers
+    sections = re.split(r"\n(?=#)", data)
+
+    chunks = []
+
+    for idx, section in enumerate(sections):
+
+        section = section.strip()
+        if not section:
+            continue
+
+        metadata = build_base_metadata(source, doc_type, "markdown")
+
+        metadata.update({
+            "chunk_type": "section",
+            "section_index": idx,
+            "text": section
+        })
+
+        metadata = add_chunk_id(metadata)
+
+        chunks.append({
+            "content": section,
+            "metadata": metadata
+        })
+
+    return chunks
+
+
+# =========================
+# YAML CHUNKING
 # =========================
 
 def yaml_chunk(parsed, source, doc_type):
+
     chunks = []
 
     def flatten(obj, prefix=""):
@@ -170,35 +169,51 @@ def yaml_chunk(parsed, source, doc_type):
             for i, item in enumerate(obj):
                 yield from flatten(item, f"{prefix}{i}.")
         else:
-            yield (prefix[:-1], obj)
+            yield prefix[:-1], obj
 
     flat_items = list(flatten(parsed))
 
-    content_lines = []
+    content_lines = [
+        f"{key}: {value}"
+        for key, value in flat_items
+    ]
 
-    for key, value in flat_items:
-        content_lines.append(f"{key}: {value}")
+    chunk_text = "\n".join(content_lines).strip()
+
+    metadata = build_base_metadata(source, doc_type, "yaml")
+
+    metadata.update({
+        "chunk_type": "yaml_flat",
+        "text": chunk_text
+    })
+
+    metadata = add_chunk_id(metadata)
 
     chunks.append({
-        "content": "\n".join(content_lines),
-        "metadata": {
-            "source": source,
-            "type": doc_type,
-            "format": "yaml"
-        }
+        "content": chunk_text,
+        "metadata": metadata
     })
 
     return chunks
 
+
 # =========================
-# JSON
+# JSON CHUNKING (RECURSIVE)
 # =========================
 
-def chunk_json(
-    data,
-    source=None,
-    doc_type=None
-):
+def flatten_json(obj, prefix=""):
+
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from flatten_json(v, f"{prefix}{k}.")
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from flatten_json(v, f"{prefix}{i}.")
+    else:
+        yield prefix[:-1], obj
+
+
+def chunk_json(data, source=None, doc_type=None):
 
     chunks = []
 
@@ -206,26 +221,20 @@ def chunk_json(
 
         for key, value in data.items():
 
-            metadata = build_base_metadata(
-                source,
-                doc_type,
-                "json"
-            )
+            content = json.dumps({key: value}, indent=2)
+
+            metadata = build_base_metadata(source, doc_type, "json")
 
             metadata.update({
-
                 "chunk_type": "json_section",
-
                 "section": key,
+                "text": content
             })
 
+            metadata = add_chunk_id(metadata)
+
             chunks.append({
-
-                "content": json.dumps(
-                    {key: value},
-                    indent=2
-                ),
-
+                "content": content,
                 "metadata": metadata
             })
 
@@ -233,26 +242,20 @@ def chunk_json(
 
         for idx, item in enumerate(data):
 
-            metadata = build_base_metadata(
-                source,
-                doc_type,
-                "json"
-            )
+            content = json.dumps(item, indent=2)
+
+            metadata = build_base_metadata(source, doc_type, "json")
 
             metadata.update({
-
                 "chunk_type": "json_item",
-
                 "index": idx,
+                "text": content
             })
 
+            metadata = add_chunk_id(metadata)
+
             chunks.append({
-
-                "content": json.dumps(
-                    item,
-                    indent=2
-                ),
-
+                "content": content,
                 "metadata": metadata
             })
 

@@ -11,15 +11,15 @@ class Agent:
             for tool in tools
         }
 
-    def run(self, query):
+    def run(self, state):
 
         if self.llm:
-            return self._run_tool_router(query)
+            return self._run_tool_router(state)
 
-        return self._run_sequential(query)
+        return self._run_sequential(state)
 
 
-    def _run_tool_router(self, query):
+    def _run_tool_router(self, state):
 
         tool_metadata = []
 
@@ -28,7 +28,7 @@ class Agent:
             tool_metadata.append({
                 "name": tool.name,
                 "description": tool.description,
-                "args": tool.schema
+                "args": list(tool.schema.keys())
             })
 
         prompt = f"""
@@ -39,16 +39,18 @@ class Agent:
             - Select the SINGLE BEST tool
             - Generate ALL required arguments
 
-            USER QUERY:
-            {query}
+            CURRENT_STATE:{state}
 
             AVAILABLE TOOLS:
             {json.dumps(tool_metadata, indent=2)}
 
             RULES:
             - Return ONLY valid JSON
-            - Do NOT explain anything
-            - Choose ONLY ONE tool
+            - No markdown
+            - No code fences
+            - args MUST contain ONLY real values from query
+            - DO NOT include schema types like <class 'str'>
+            - If unsure, infer realistic string values
 
             OUTPUT FORMAT:
 
@@ -61,15 +63,31 @@ class Agent:
             """
 
         response = self.llm.generate(prompt)
+        
+        if response.startswith("```"):
+            response = response.replace("```json", "").replace("```", "").strip()
 
         print("\n========== RAW LLM RESPONSE ==========")
         print(response)
 
-        parsed = json.loads(response)
+        try:
+            parsed = json.loads(response)
+        except json.JSONDecodeError:
+            
+            import re
+
+            match = re.search(r"\{.*\}", response, re.DOTALL)
+            if not match:
+                raise Exception(f"Invalid LLM output:\n{response}")
+
+            parsed = json.loads(match.group())
 
         tool_name = parsed["tool"]
 
+        print("Tool name:", tool_name)
+
         args = parsed["args"]
+        print("Args:", args)
 
         selected_tool = self.tools[tool_name]
 
@@ -81,12 +99,12 @@ class Agent:
             "result": result
         }
 
-    def _run_sequential(self, query):
+    def _run_sequential(self, state):
 
         results = {}
 
         for name, tool in self.tools.items():
 
-            results[name] = tool.func(query=query)
+            results[name] = tool.func(query=state.user_query, content=state.curr_data)
 
         return results
