@@ -14,7 +14,6 @@ if __name__ == "__main__":
     "retrieved_data": None,
     "context": None,
     "final_answer": None,
-    "history": []
 }
 
     llm = LLM()
@@ -33,7 +32,6 @@ if __name__ == "__main__":
     retrieval_agent = Agent(
         tools=retirieval_tools,
         llm=llm,
-        state=state,
         task = """
             You have act as an intelligent tool-routing system.
             - Understand the user query
@@ -44,7 +42,6 @@ if __name__ == "__main__":
 
     summary_agent = Agent(
         tools = summary_tools,
-        state = state
     )
     
     user_query = input() or "Where is JWT validation implemented?"
@@ -53,7 +50,7 @@ if __name__ == "__main__":
 
     state = retrieval_agent.run(state)
 
-    print("\nRetrieved:\n",state["retrieval_result"])
+    print("\nRetrieved:\n",state["history"])
 
     final_answer = summary_agent.run(state)
 

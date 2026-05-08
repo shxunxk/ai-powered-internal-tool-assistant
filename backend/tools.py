@@ -117,7 +117,7 @@ def summarize(state):
     - If insufficient info exists, say so
 
     Data:
-    {state["retrieved_data"]}
+    {state["history"]}
 
     ANSWER:
     """

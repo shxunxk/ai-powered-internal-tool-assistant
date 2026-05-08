@@ -63,39 +63,28 @@ class Agent:
             "tool": "<tool_name>",
             "doc_type": "<document_type>"
         }},
-
-        "final_answer": null
     }}
 
     IF ENOUGH INFORMATION EXISTS:
 
     {{
         "thought": "...",
-
         "action": null,
-
-        "final_answer": "..."
     }}
     """
 
             response = self.llm.generate(prompt)
-
             parsed = json.loads(response)
-
             state["history"].append({
                 "type": "thought",
                 "content": parsed["thought"]
             })
-
             # STOP CONDITION
-            if parsed["final_answer"]:
-                state["final_answer"] = parsed["final_answer"]
+            if parsed["action"] == None:
                 return state
-
+            state["doc_type"] = parsed["action"]["doc_type"]
             tool_name = parsed["action"]["tool"]
-
             tool = self.tools[tool_name]
-
             state = tool.func(state)
 
             state["history"].append({
@@ -103,8 +92,6 @@ class Agent:
                 "tool": tool_name,
                 "result": state["tool_outputs"].get(tool_name)
             })
-
-        state["final_answer"] = "Max steps exceeded"
 
         return state
 
