@@ -15,7 +15,12 @@ def search_code(state):
 
     result = retriever(state["user_query"], state["doc_type"])
 
-    return {**state, "retrieved_data": result}
+    return {**state, "retrieved_data": result, "tool_outputs": {
+
+        **state.get("tool_outputs", {}),
+
+        "search_code": result
+    }}
 
 
 def search_records(state):
@@ -32,7 +37,12 @@ def search_records(state):
 
     result = retriever(state["user_query"], state["doc_type"])
 
-    return {**state, "retrieved_data": result}
+    return {**state, "retrieved_data": result, "tool_outputs": {
+
+        **state.get("tool_outputs", {}),
+
+        "search_code": result
+    }}
 
 
 def search_docs(state):
@@ -49,7 +59,12 @@ def search_docs(state):
 
     result = retriever(state["user_query"], state["doc_type"])
 
-    return {**state, "retrieved_data": result}
+    return {**state, "retrieved_data": result, "tool_outputs": {
+
+        **state.get("tool_outputs", {}),
+
+        "search_code": result
+    }}
 
 
 def summarize(state):

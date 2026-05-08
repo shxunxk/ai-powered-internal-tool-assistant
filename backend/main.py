@@ -35,10 +35,10 @@ if __name__ == "__main__":
         llm=llm,
         state=state,
         task = """
-            You are an intelligent tool-routing system.
+            You have act as an intelligent tool-routing system.
             - Understand the user query
             - Select the SINGLE BEST tool
-            - Generate the type of file it can be among code, docs, records.
+            - Generate the type of file/document it can be among code, docs, records.
             """
     )
 
