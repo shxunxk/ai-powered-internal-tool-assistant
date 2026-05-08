@@ -2,7 +2,7 @@ import json
 
 class Agent:
 
-    def __init__(self, tools, llm=None):
+    def __init__(self, tools, llm=None, task="Perform task demanded by the user"):
 
         self.llm = llm
 
@@ -14,12 +14,12 @@ class Agent:
     def run(self, state):
 
         if self.llm:
-            return self._run_tool_router(state)
+            return self._run_reAct(state)
 
         return self._run_sequential(state)
 
 
-    def _run_tool_router(self, state):
+    def _run_reAct(self, state):
 
         tool_metadata = []
 
@@ -32,12 +32,9 @@ class Agent:
             })
 
         prompt = f"""
-            You are an intelligent tool-routing system.
 
             Your task:
-            - Understand the user query
-            - Select the SINGLE BEST tool
-            - Generate ALL required arguments
+            {self.task}
 
             CURRENT_STATE:{state}
 
@@ -56,9 +53,7 @@ class Agent:
 
             {{
                 "tool": "<tool_name>",
-                "args": {{
-                    "<arg_name>": "<value>"
-                }}
+                "doc_type": "<doc_type>"
             }}
             """
 
@@ -83,28 +78,20 @@ class Agent:
             parsed = json.loads(match.group())
 
         tool_name = parsed["tool"]
+        doc_type = parsed["doc_type"]
 
-        print("Tool name:", tool_name)
-
-        args = parsed["args"]
-        print("Args:", args)
+        print("Tool name and Doc type:", tool_name, doc_type)
 
         selected_tool = self.tools[tool_name]
 
-        result = selected_tool.func(**args)
+        state = selected_tool.func(state)
 
-        return {
-            "selected_tool": tool_name,
-            "tool_args": args,
-            "result": result
-        }
+        return state
 
     def _run_sequential(self, state):
 
-        results = {}
+        for _, tool in self.tools.items():
 
-        for name, tool in self.tools.items():
+            state = tool.func(state)
 
-            results[name] = tool.func(query=state.user_query, content=state.curr_data)
-
-        return results
+        return state

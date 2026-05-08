@@ -6,10 +6,16 @@ from tools import search_code, search_docs, search_records, summarize
 if __name__ == "__main__":
 
     state = {
-        "user_quer":None,
-        "curr_data":None,
-        "prev_data":None
-    }
+    "user_query": None,
+    "history": [],
+    "tool_outputs": {},
+    "selected_tool": None,
+    "doc_type": None,
+    "retrieved_data": None,
+    "context": None,
+    "final_answer": None,
+    "history": []
+}
 
     llm = LLM()
 
@@ -26,22 +32,29 @@ if __name__ == "__main__":
 
     retrieval_agent = Agent(
         tools=retirieval_tools,
-        llm=llm
-        state=state
+        llm=llm,
+        state=state,
+        task = """
+            You are an intelligent tool-routing system.
+            - Understand the user query
+            - Select the SINGLE BEST tool
+            - Generate the type of file it can be among code, docs, records.
+            """
     )
 
     summary_agent = Agent(
         tools = summary_tools,
-        state=state
+        state = state
     )
     
-    user_query = "Where is JWT validation implemented?"
+    user_query = input() or "Where is JWT validation implemented?"
+    
     state["user_query"] = user_query
 
-    retrieval_result = retrieval_agent.run(state)
+    state = retrieval_agent.run(state)
 
-    print("\nRetrieved:\n",retrieval_result)
+    print("\nRetrieved:\n",state["retrieval_result"])
 
-    final_answer = summary_agent.run(data=retrieval_result["result"], query = user_query)
+    final_answer = summary_agent.run(state)
 
     print("\nFinal:\n",final_answer)

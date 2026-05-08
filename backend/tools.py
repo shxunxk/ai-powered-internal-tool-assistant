@@ -1,8 +1,7 @@
 from llm.llmSetUp import LLM
-
 from rag.retriever import retriever
 
-def search_code(query: str):
+def search_code(state):
     """
     Search source code, APIs, functions, classes,
     and implementation logic.
@@ -14,12 +13,12 @@ def search_code(query: str):
     - business logic analysis
     """
 
-    print("here1")
+    result = retriever(state["user_query"], state["doc_type"])
 
-    return retriever(query, "code")
+    return {**state, "retrieved_data": result}
 
 
-def search_records(query: str):
+def search_records(state):
     """
     Search logs, runtime events, failures,
     incidents, and monitoring records.
@@ -31,10 +30,12 @@ def search_records(query: str):
     - latency investigations
     """
 
-    return retriever(query, "logs")
+    result = retriever(state["user_query"], state["doc_type"])
+
+    return {**state, "retrieved_data": result}
 
 
-def search_docs(query: str):
+def search_docs(state):
     """
     Search documentation, guides, setup instructions,
     policies, architecture docs, and onboarding material.
@@ -46,10 +47,12 @@ def search_docs(query: str):
     - workflows
     """
 
-    return retriever(query, "docs")
+    result = retriever(state["user_query"], state["doc_type"])
+
+    return {**state, "retrieved_data": result}
 
 
-def summarize(query, content):
+def summarize(state):
     """
     Generate a concise answer by summarizing retrieved content in response to a user query.
 
@@ -91,7 +94,7 @@ def summarize(query, content):
     Use ONLY the provided with data to generate summary of it and answer the users query.
 
     Query:
-    {query}
+    {state["user_query"]}
     
     RULES:
     - Do not hallucinate
@@ -99,11 +102,13 @@ def summarize(query, content):
     - If insufficient info exists, say so
 
     Data:
-    {content}
+    {state["retrieved_data"]}
 
     ANSWER:
     """
 
     print("\nSummary LLM Prompt:\n", prompt)
 
-    return llm.generate(prompt)
+    result = llm.generate(prompt)
+
+    return {**state, "final_answer": result}
