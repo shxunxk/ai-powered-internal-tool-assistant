@@ -35,52 +35,66 @@ class Agent:
                 })
 
             prompt = f"""
-    You are a ReAct AI agent.
+            You are a ReAct retrieval agent.
 
-    TASK:
-    {self.task}
+            TASK:
+            {self.task}
 
-    CURRENT STATE:
-    {json.dumps(state, indent=2)}
+            CURRENT STATE:
+            {json.dumps(state, indent=2)}
 
-    AVAILABLE TOOLS:
-    {json.dumps(tool_metadata, indent=2)}
+            AVAILABLE TOOLS:
+            {json.dumps(tool_metadata, indent=2)}
 
-    You can:
-    - think step-by-step
-    - use tools
-    - observe results
-    - continue reasoning
+            RULES:
+            - Return ONLY valid JSON
+            - No markdown
+            - No explanations
+            - No text before JSON
+            - No text after JSON
+            - Your FIRST character MUST be {{
+            - Your LAST character MUST be }}
 
-    Return ONLY valid JSON.
+            VALID doc_type VALUES:
+            - code
+            - docs
+            - records
 
-    IF MORE INFORMATION IS NEEDED:
+            OUTPUT FORMAT IF RETRIEVAL IS NEEDED:
 
-    {{
-        "thought": "...",
+            {{
+                "thought": "...",
 
-        "action": {{
-            "tool": "<tool_name>",
-            "doc_type": "<document_type>"
-        }},
-    }}
+                "action": {{
+                    "tool": "<tool_name>",
+                    "doc_type": "code|docs|records"
+                }}
+            }}
 
-    IF ENOUGH INFORMATION EXISTS:
+            OUTPUT FORMAT IF ENOUGH INFORMATION EXISTS:
 
-    {{
-        "thought": "...",
-        "action": null,
-    }}
-    """
+            {{
+                "thought": "...",
+                "action": null
+            }}
+            """
 
             response = self.llm.generate(prompt)
+            
+            firstOcc = response.find("{")
+            lastOcc = response.rfind("}")
+
+            response = response[firstOcc:lastOcc+1]
+            
+            print(response)
             parsed = json.loads(response)
+
             state["history"].append({
                 "type": "thought",
                 "content": parsed["thought"]
             })
             # STOP CONDITION
-            if parsed["action"] == None:
+            if parsed.get("action") is None:
                 return state
             state["doc_type"] = parsed["action"]["doc_type"]
             tool_name = parsed["action"]["tool"]

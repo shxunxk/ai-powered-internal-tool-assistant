@@ -2,6 +2,7 @@ from Tool import Tool
 from Agent import Agent
 from llm.llmSetUp import LLM
 from tools import search_code, search_docs, search_records, summarize
+import json
 
 if __name__ == "__main__":
 
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         tools = summary_tools,
     )
     
-    user_query = input() or "Where is JWT validation implemented?"
+    user_query = "Where is JWT validation implemented?"
     
     state["user_query"] = user_query
 
@@ -54,4 +55,4 @@ if __name__ == "__main__":
 
     final_answer = summary_agent.run(state)
 
-    print("\nFinal:\n",final_answer)
+    print("\nFinal:\n",json.load(final_answer))
