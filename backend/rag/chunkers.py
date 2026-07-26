@@ -4,11 +4,7 @@ import yaml
 import uuid
 import re
 
-
-# =========================
 # BASE METADATA
-# =========================
-
 def build_base_metadata(source, doc_type, language):
     return {
         "source": source,
@@ -22,34 +18,7 @@ def add_chunk_id(metadata):
     return metadata
 
 
-import ast
-import json
-import yaml
-import uuid
-import re
-
-
-# =========================
-# BASE METADATA
-# =========================
-
-def build_base_metadata(source, doc_type, language):
-    return {
-        "source": source,
-        "doc_type": doc_type,
-        "language": language
-    }
-
-
-def add_chunk_id(metadata):
-    metadata["chunk_id"] = str(uuid.uuid4())
-    return metadata
-
-
-# =========================
 # PYTHON CHUNKING
-# =========================
-
 def chunk_python(data, source=None, doc_type=None):
 
     tree = ast.parse(data)
@@ -91,7 +60,7 @@ def chunk_python(data, source=None, doc_type=None):
                 "metadata": metadata
             })
 
-    # 🔥 fallback: global code
+    # fallback: global code
     remaining = [
         lines[i]
         for i in range(len(lines))
@@ -118,13 +87,10 @@ def chunk_python(data, source=None, doc_type=None):
     return chunks
 
 
-# =========================
 # MARKDOWN CHUNKING
-# =========================
-
 def chunk_markdown(data, source=None, doc_type=None):
 
-    # better split by headers
+    # split by headers
     sections = re.split(r"\n(?=#)", data)
 
     chunks = []
@@ -153,10 +119,7 @@ def chunk_markdown(data, source=None, doc_type=None):
     return chunks
 
 
-# =========================
 # YAML CHUNKING
-# =========================
-
 def yaml_chunk(parsed, source, doc_type):
 
     chunks = []
@@ -197,10 +160,7 @@ def yaml_chunk(parsed, source, doc_type):
     return chunks
 
 
-# =========================
-# JSON CHUNKING (RECURSIVE)
-# =========================
-
+# JSON CHUNKING
 def flatten_json(obj, prefix=""):
 
     if isinstance(obj, dict):

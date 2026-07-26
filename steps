@@ -1,23 +1,20 @@
-🔥 PHASED IMPLEMENTATION PLAN
-
-DO NOT try to build everything at once.
+PHASED IMPLEMENTATION PLAN
 
 Industry systems are layered.
 
 Build in this order:
 
-Phase 1 → RAG Foundation
-Phase 2 → Multi-Agent System
+Phase 1 → RAG Foundation - Implemented
+Phase 2 → Multi-Agent System (Build reAct agent) - Implemented
 Phase 3 → Incident Intelligence
 Phase 4 → LLMOps Infrastructure
 Phase 5 → Observability & Evaluation
 Phase 6 → Advanced Agentic Workflows
+
+
 PHASE 1 — Build the RAG Foundation
 
-This is your MOST important layer initially.
-
 Goal
-
 Allow the system to answer:
 
 "Where is JWT validation implemented?"
@@ -40,6 +37,7 @@ Vector DB
 Retriever
    ↓
 LLM
+
 STEP 1 — Load Data
 
 Create:
@@ -62,9 +60,8 @@ Purpose	Library
 RAG framework	LangChain
 Embeddings	Sentence Transformers
 Vector DB	Chroma
-STEP 2 — Chunk Documents
 
-Very important.
+STEP 2 — Chunk Documents
 
 Different data types require different chunking.
 
@@ -92,7 +89,7 @@ time windows
 service
 Example Metadata
 
-Store metadata like:
+Store metadata format:
 
 {
   "source": "auth-service/main.py",
@@ -100,28 +97,16 @@ Store metadata like:
   "type": "code"
 }
 
-Metadata is CRITICAL.
+STEP 3 — Create Embeddings and store in ChromaDB
 
-STEP 3 — Create Embeddings
-
-Use:
-
-from sentence_transformers import SentenceTransformer
-
-Recommended model:
-
-all-MiniLM-L6-v2
-
-Good enough initially.
-
-STEP 4 — Store in ChromaDB
+Embedding model - llama-text-embed-v2
 
 Example:
-
 collection.add(
     documents=chunks,
     metadatas=metadata
 )
+
 STEP 5 — Retrieval Pipeline
 
 Create:
@@ -146,7 +131,9 @@ retrieve logs
 retrieve incident reports
 retrieve deployment history
 send context to LLM
-🔥 PHASE 2 — Build Multi-Agent System
+
+
+PHASE 2 — Build Multi-Agent System
 
 Now you add:
 
@@ -203,6 +190,7 @@ Codebase Agent retrieves:
 code
 APIs
 configs
+
 STEP 3 — Tool Calling
 
 Agents should use tools like:
@@ -215,7 +203,9 @@ search_metrics()
 This is:
 
 agentic reasoning
-🔥 PHASE 3 — Build Incident Intelligence
+
+
+PHASE 3 — Build Incident Intelligence
 
 Now your system becomes:
 

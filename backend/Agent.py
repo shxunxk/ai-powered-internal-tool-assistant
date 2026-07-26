@@ -22,8 +22,9 @@ class Agent:
     def _run_reAct(self, state):
 
         MAX_STEPS = 5
+        i = 0
 
-        for step in range(MAX_STEPS):
+        while i<MAX_STEPS:
 
             tool_metadata = []
 
@@ -55,11 +56,6 @@ class Agent:
             - Your FIRST character MUST be {{
             - Your LAST character MUST be }}
 
-            VALID doc_type VALUES:
-            - code
-            - docs
-            - records
-
             OUTPUT FORMAT IF RETRIEVAL IS NEEDED:
 
             {{
@@ -67,7 +63,6 @@ class Agent:
 
                 "action": {{
                     "tool": "<tool_name>",
-                    "doc_type": "code|docs|records"
                 }}
             }}
 
@@ -77,6 +72,18 @@ class Agent:
                 "thought": "...",
                 "action": null
             }}
+
+            IMPORTANT:
+            You must generate ONLY ONE reasoning step.
+            ONLY ONE final JSON OBJECT with both 'thought' and 'action' arguments inside it. Do not generate multiple
+            JSON objects. ALL ARGUMENTS MUST BE GENERATED. ONLY GENERATE A VALUE FOR THE ARGUMENTS NO EXTRA DATA OR 
+            EXPLAINATION FOR IT IS TO BE GIVEN.
+
+            Do NOT simulate future iterations.
+            Do NOT generate multiple JSON objects.
+            Do NOT continue reasoning after choosing one action.
+
+            The Python runtime will call you again with updated state.
             """
 
             response = self.llm.generate(prompt)
@@ -85,9 +92,12 @@ class Agent:
             lastOcc = response.rfind("}")
 
             response = response[firstOcc:lastOcc+1]
-            
+
             print(response)
             parsed = json.loads(response)
+
+            if(parsed.get("thought") is None):
+                continue
 
             state["history"].append({
                 "type": "thought",
@@ -96,7 +106,7 @@ class Agent:
             # STOP CONDITION
             if parsed.get("action") is None:
                 return state
-            state["doc_type"] = parsed["action"]["doc_type"]
+            
             tool_name = parsed["action"]["tool"]
             tool = self.tools[tool_name]
             state = tool.func(state)
@@ -106,6 +116,8 @@ class Agent:
                 "tool": tool_name,
                 "result": state["tool_outputs"].get(tool_name)
             })
+
+            i=i+1
 
         return state
 

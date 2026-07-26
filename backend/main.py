@@ -6,18 +6,26 @@ import json
 
 if __name__ == "__main__":
 
+# state initialization
     state = {
     "user_query": None,
     "history": [],
     "tool_outputs": {},
     "selected_tool": None,
-    "doc_type": None,
-    "retrieved_data": None,
     "context": None,
     "final_answer": None,
-}
+    }
 
     llm = LLM()
+
+    """ 
+    multi-agent orchestration LLM-based system 
+
+    prompt = You have following agents available to you:
+    ''
+    ''
+    ''
+    """
 
     retirieval_tools = [
         Tool(search_code),
@@ -37,7 +45,6 @@ if __name__ == "__main__":
             You have act as an intelligent tool-routing system.
             - Understand the user query
             - Select the SINGLE BEST tool
-            - Generate the type of file/document it can be among code, docs, records.
             """
     )
 
@@ -55,4 +62,4 @@ if __name__ == "__main__":
 
     final_answer = summary_agent.run(state)
 
-    print("\nFinal:\n",json.load(final_answer))
+    print("\nFinal:\n",final_answer["final_answer"])

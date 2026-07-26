@@ -13,8 +13,6 @@ The platform should:
 * Execute operational workflows through AI agents
 * Include a complete enterprise-style LLMOps lifecycle
 
-This is NOT a simple chatbot.
-
 The goal is to simulate:
 
 * AI SRE systems
@@ -153,58 +151,6 @@ LLMOps Layer
     ├── Guardrails
     └── CI/CD Pipelines
 ```
-
----
-
-# 4. Recommended Tech Stack
-
-## Backend
-
-* FastAPI
-
-## Agent Framework
-
-* LangGraph
-
-## LLM Framework
-
-* LangChain
-
-## Vector Database
-
-* ChromaDB initially
-* Optional upgrade: Pinecone/Weaviate
-
-## Embeddings
-
-* OpenAI embeddings OR sentence-transformers
-
-## Relational Database
-
-* PostgreSQL
-
-## Observability
-
-* LangSmith
-* OpenTelemetry
-
-## Monitoring
-
-* Prometheus
-* Grafana
-
-## CI/CD
-
-* GitHub Actions
-
-## Deployment
-
-* Docker
-* Kubernetes later
-
-## Frontend
-
-* Next.js or React
 
 ---
 

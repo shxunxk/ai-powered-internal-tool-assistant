@@ -4,9 +4,7 @@ from rag.vectorDB import index, generate_embeddings
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 
-def retriever(query, doc_type, top_k=10):
-
-    print("Doc type:", doc_type)
+def retriever(query, top_k=10):
 
     query_vector = generate_embeddings(query)
 
@@ -14,9 +12,9 @@ def retriever(query, doc_type, top_k=10):
         vector=query_vector,
         top_k=top_k,
         include_metadata=True,
-        filter={
-        "doc_type": {"$eq": doc_type}
-        }
+        # filter={
+        # "doc_type": {"$eq": doc_type}
+        # }
     )
 
     matches = results["matches"]

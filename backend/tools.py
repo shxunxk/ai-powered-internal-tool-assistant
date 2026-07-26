@@ -13,7 +13,7 @@ def search_code(state):
     - business logic analysis
     """
 
-    result = retriever(state["user_query"], state["doc_type"])
+    result = retriever(state["user_query"])
 
     return {**state, "retrieved_data": result, "tool_outputs": {
 
@@ -35,7 +35,7 @@ def search_records(state):
     - latency investigations
     """
 
-    result = retriever(state["user_query"], state["doc_type"])
+    result = retriever(state["user_query"])
 
     return {**state, "retrieved_data": result, "tool_outputs": {
 
@@ -57,7 +57,7 @@ def search_docs(state):
     - workflows
     """
 
-    result = retriever(state["user_query"], state["doc_type"])
+    result = retriever(state["user_query"])
 
     return {**state, "retrieved_data": result, "tool_outputs": {
 
