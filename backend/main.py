@@ -3,6 +3,7 @@ from Agent import Agent
 from llm.llmSetUp import LLM
 from tools import search_code, search_docs, search_records, summarize
 import json
+from llmOps.prompts import prompt_registry
 
 if __name__ == "__main__":
 
@@ -18,14 +19,18 @@ if __name__ == "__main__":
 
     llm = LLM()
 
-    """ 
-    multi-agent orchestration LLM-based system 
+    # """ 
+    # multi-agent orchestration LLM-based system 
 
-    prompt = You have following agents available to you:
-    ''
-    ''
-    ''
-    """
+    # prompt = You have following agents available to you:
+    # ''
+    # ''
+    # ''
+    # """
+
+    # router_agent = Agent(
+    # task="Identify if this is an incident question, code question, or docs question"
+    # )
 
     retirieval_tools = [
         Tool(search_code),
@@ -41,15 +46,12 @@ if __name__ == "__main__":
     retrieval_agent = Agent(
         tools=retirieval_tools,
         llm=llm,
-        task = """
-            You have act as an intelligent tool-routing system.
-            - Understand the user query
-            - Select the SINGLE BEST tool
-            """
+        prompt = prompt_registry.get_prompt("agent_reasoning")
     )
 
     summary_agent = Agent(
         tools = summary_tools,
+        prompt = prompt_registry.get_prompt("agent_summary")
     )
     
     user_query = "Where is JWT validation implemented?"

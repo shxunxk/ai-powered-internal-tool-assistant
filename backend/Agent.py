@@ -2,14 +2,14 @@ import json
 
 class Agent:
 
-    def __init__(self, tools, llm=None, task="Perform task demanded by the user"):
+    def __init__(self, tools, llm=None, prompt="Perform task demanded by the user"):
 
         self.llm = llm
-        self.task = task
         self.tools = {
             tool.name: tool
             for tool in tools
         }
+        self.prompt = prompt
 
     def run(self, state):
 
@@ -35,58 +35,15 @@ class Agent:
                     "description": tool.description
                 })
 
-            prompt = f"""
-            You are a ReAct retrieval agent.
+            try:
+                formatted_prompt = self.prompt.format(
+                    state=json.dumps(state, indent=2),
+                    tool_metadata=json.dumps(tool_metadata, indent=2)
+                )
+            except KeyError:
+                formatted_prompt = self.prompt
 
-            TASK:
-            {self.task}
-
-            CURRENT STATE:
-            {json.dumps(state, indent=2)}
-
-            AVAILABLE TOOLS:
-            {json.dumps(tool_metadata, indent=2)}
-
-            RULES:
-            - Return ONLY valid JSON
-            - No markdown
-            - No explanations
-            - No text before JSON
-            - No text after JSON
-            - Your FIRST character MUST be {{
-            - Your LAST character MUST be }}
-
-            OUTPUT FORMAT IF RETRIEVAL IS NEEDED:
-
-            {{
-                "thought": "...",
-
-                "action": {{
-                    "tool": "<tool_name>",
-                }}
-            }}
-
-            OUTPUT FORMAT IF ENOUGH INFORMATION EXISTS:
-
-            {{
-                "thought": "...",
-                "action": null
-            }}
-
-            IMPORTANT:
-            You must generate ONLY ONE reasoning step.
-            ONLY ONE final JSON OBJECT with both 'thought' and 'action' arguments inside it. Do not generate multiple
-            JSON objects. ALL ARGUMENTS MUST BE GENERATED. ONLY GENERATE A VALUE FOR THE ARGUMENTS NO EXTRA DATA OR 
-            EXPLAINATION FOR IT IS TO BE GIVEN.
-
-            Do NOT simulate future iterations.
-            Do NOT generate multiple JSON objects.
-            Do NOT continue reasoning after choosing one action.
-
-            The Python runtime will call you again with updated state.
-            """
-
-            response = self.llm.generate(prompt)
+            response = self.llm.generate(formatted_prompt)
             
             firstOcc = response.find("{")
             lastOcc = response.rfind("}")

@@ -207,37 +207,21 @@ agentic reasoning
 
 PHASE 3 — Build Incident Intelligence
 
-Now your system becomes:
-
 enterprise-AIOps-like
+
 Goal
 
 System performs:
 
-root cause analysis
-deployment correlation
-anomaly explanations
-Example Workflow
-
-User asks:
-
-Why did checkout fail yesterday?
-Agent Workflow
-1. Retrieve logs
-2. Retrieve metrics
-3. Retrieve deployments
-4. Retrieve incidents
-5. Build timeline
-6. Generate RCA
-This Is HUGE
+* root cause analysis
+* deployment correlation
+* anomaly explanations
 
 This becomes:
-
 AI-powered observability
 
-Very industry-relevant.
 
-🔥 PHASE 4 — Implement LLMOps
+PHASE 4 — Implement LLMOps
 
 Now you build:
 
@@ -249,14 +233,18 @@ This is where your project becomes advanced.
 
 Store prompts:
 
-incident_prompt_v1.txt
-incident_prompt_v2.txt
+* incident_prompt_v1.txt
+* incident_prompt_v2.txt
 
 Track:
 
-hallucination rate
-response quality
+* hallucination rate
+* response quality
+
 2. Evaluations
+
+This is still future work.
+
 
 Create eval dataset:
 

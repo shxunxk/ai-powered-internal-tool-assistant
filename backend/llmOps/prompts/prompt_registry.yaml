@@ -1,0 +1,16 @@
+prompts:
+  agent_reasoning:
+    current_version: "v1"
+    versions:
+      v1:
+        file: "agent_reasoning.md"
+        created_date: "2026-07-28"
+        description: "ReAct agent reasoning prompt"
+        
+  agent_summary:
+    current_version: "v1"
+    versions:
+      v1:
+        file: "agent_summary.md"
+        created_date: "2026-07-28"
+        description: "Agent summary generation prompt"

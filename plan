@@ -1,263 +1,89 @@
-# Enterprise AI Operations Copilot — Full Industry-Level LLMOps Project Blueprint
+# AI Powered Internal Tool Assistant — Project Plan
 
-## Project Vision
+## Current repo reality
+This repo is already in a seeded RAG/agent state, but it is not a full enterprise stack yet.
 
-Build a production-style AI Operations Assistant for engineering teams.
+What exists today:
 
-The platform should:
+* `backend/main.py` runs a simple retrieval/reasoning flow with `Agent`, `Tool`, and `LLM`.
+* `backend/llm/llmSetUp.py` is a stateless wrapper over `litellm.completion`.
+* `backend/rag/ingest.py` reads `data/code`, `data/docs`, and `data/records`, chunks files, generates embeddings, and uploads them to Pinecone.
+* `backend/rag/vectorDB.py` creates a Pinecone index if missing and stores vectors there.
+* `backend/rag/retriever.py` embeds queries locally, queries Pinecone, and reranks results with a cross encoder.
+* `backend/tools.py` exposes basic search tools and a summarizer, but right now `search_code`, `search_docs`, and `search_records` all call the same retriever.
 
-* Answer questions about infrastructure, codebases, logs, APIs, and deployments
-* Investigate incidents automatically
-* Search internal documentation using RAG
-* Analyze metrics and logs
-* Execute operational workflows through AI agents
-* Include a complete enterprise-style LLMOps lifecycle
-
-The goal is to simulate:
-
-* AI SRE systems
-* AI DevOps copilots
-* Enterprise AI infrastructure assistants
-* Agentic observability systems
+What is not in place yet:
+* No `backend/api` or frontend service is implemented.
+* There is no prompt registry, evaluation, or observability module yet.
+* Tool specialization and a real router agent are still future work.
+* The current flow is not production-ready; it is a research/demo prototype.
 
 ---
 
-# 1. Final Product Capabilities
+## Implementation facts I need to keep correct
 
-## Users Can Ask:
-
-### Infrastructure Questions
-
-* "How does authentication work?"
-* "What services depend on Redis?"
-* "Explain deployment flow"
-
-### Codebase Questions
-
-* "Where is JWT validation implemented?"
-* "Which file handles rate limiting?"
-* "Trace payment request flow"
-
-### Incident Questions
-
-* "Why did checkout latency spike?"
-* "Summarize today's production errors"
-* "What changed before the outage?"
-
-### Operational Actions
-
-* "Create GitHub issue for API failures"
-* "Restart staging service"
-* "Generate incident report"
+* Embeddings are created locally in `backend/rag/vectorDB.py`.
+* Pinecone is the vector store, not ChromaDB.
+* `backend/main.py` does not ingest data. Ingest is separate in `backend/rag/ingest.py`.
+* The same `LLM()` object can be reused safely for now because `LLM` has no mutable instance state.
+* Repeated ingest runs upload vectors again, but deterministic IDs make them update/overwrite rather than duplicate.
 
 ---
 
-# 2. Complete Industry-Level LLMOps Components
+## What I want this repo to become
 
-This project MUST implement ALL major LLMOps layers.
+Phase 1 — RAG Foundation (current stage)
 
-## Core LLMOps Layers
+* Local chunking for Python, Markdown, YAML, JSON
+* Embedding generation and Pinecone upload
+* Query embedding and vector search
+* Basic re-rank + summarization path
 
-### A. Prompt Management
+Phase 2 — Agent/Tool polish
+
+* Separate search tools for code, docs, incidents
+* A router agent that picks the right tool
+* Better prompt design and action output
+
+Phase 3 — Incident intelligence
+
+* Root cause analysis workflows
+* Logs/metrics/incident correlation
+* Timeline construction and explanation
+
+Phase 4 — LLMOps infrastructure
 
 * Prompt versioning
-* Prompt testing
-* Prompt rollback
-* Prompt evaluation
-
-### B. RAG Infrastructure
-
-* Chunking pipeline
-* Embedding pipeline
-* Metadata filtering
-* Hybrid retrieval
-* Reranking
-* Context assembly
-
-### C. Agent Orchestration
-
-* Router agent
-* Multi-agent workflows
-* Tool calling
-* Memory systems
-* Planning/reasoning chains
-
-### D. Evaluation Framework
-
-* Retrieval evaluation
-* Hallucination testing
-* Agent success evaluation
-* Tool call validation
-* Latency benchmarks
-
-### E. Observability
-
-* Token monitoring
-* Agent tracing
-* Retrieval metrics
-* Failure tracking
-* Prompt analytics
-
-### F. Guardrails/Security
-
-* Prompt injection detection
-* Tool permission control
-* Unsafe output filtering
-* Action confirmation systems
-
-### G. CI/CD
-
-* Prompt testing in CI
-* RAG benchmark testing
-* Agent integration testing
-* Automated deployments
-
-### H. Cost Optimization
-
-* Caching
-* Model routing
-* Context compression
-* Selective retrieval
+* Evaluation tracking
+* Observability / traces
+* Guardrails and action confirmation
 
 ---
 
-# 3. High-Level System Architecture
+## Actual file structure now
 
-```text
-User Query
-    ↓
-API Gateway
-    ↓
-Router Agent
-    ↓
-Specialized Agents
-    ├── Docs Agent
-    ├── Codebase Agent
-    ├── Incident Agent
-    ├── Metrics Agent
-    └── Action Agent
-    ↓
-Tool Layer
-    ├── Vector DB
-    ├── GitHub API
-    ├── Log Storage
-    ├── Metrics APIs
-    └── SQL Database
-    ↓
-LLMOps Layer
-    ├── Prompt Registry
-    ├── Evaluation System
-    ├── Observability
-    ├── Guardrails
-    └── CI/CD Pipelines
+```
+backend/
+  Agent.py
+  Tool.py
+  tools.py
+  main.py
+  llm/
+    llmSetUp.py
+  rag/
+    chunkers.py
+    ingest.py
+    retriever.py
+    vectorDB.py
 ```
 
----
+## Notes for myself
 
-# 5. Complete Project Folder Structure
+* `python backend/rag/ingest.py` is the ingestion command.
+* `python backend/main.py` is the retrieval/demo command.
+* If I ever refactor, I should keep ingest and runtime separate.
+* If I want real multi-agent routing, I need to split `tools.py` into distinct tool outputs and replace the current single retriever pattern.
 
-```text
-ai-ops-copilot/
-│
-├── backend/
-│   ├── api/
-│   ├── agents/
-│   ├── rag/
-│   ├── prompts/
-│   ├── tools/
-│   ├── evaluations/
-│   ├── observability/
-│   ├── monitoring/
-│   ├── security/
-│   ├── workflows/
-│   ├── memory/
-│   ├── ingestion/
-│   ├── tests/
-│   └── config/
-│
-├── frontend/
-│
-├── infrastructure/
-│   ├── docker/
-│   ├── kubernetes/
-│   ├── terraform/
-│   └── monitoring/
-│
-├── github_actions/
-│
-├── datasets/
-│
-├── docs/
-│
-└── notebooks/
-```
-
----
-
-# 6. Phase-by-Phase Development Roadmap
-
-# PHASE 1 — Basic RAG Assistant
-
-## Goal
-
-Build a strong enterprise-style RAG system.
-
-## Features
-
-* Upload docs
-* Embed documents
-* Semantic search
-* Answer questions with citations
-
-## Concepts Learned
-
-* Chunking
-* Embeddings
-* Vector databases
-* Context windows
-* Prompt templates
-
-## Deliverables
-
-* FastAPI backend
-* ChromaDB integration
-* Basic chat UI
-
----
-
-# PHASE 2 — Enterprise Multi-Source RAG
-
-## Goal
-
-Expand beyond PDFs.
-
-## Add Sources
-
-* Markdown docs
-* Logs
-* GitHub repositories
-* JSON incident reports
-
-## Features
-
-* Metadata filtering
-* Hybrid retrieval
-* Reranking
-* Source citations
-
-## Concepts Learned
-
-* Retrieval pipelines
-* Advanced RAG
-* Multi-source indexing
-
----
-
-# PHASE 3 — Multi-Agent System
-
-## Goal
-
-Introduce agent orchestration.
 
 ## Agents
 
