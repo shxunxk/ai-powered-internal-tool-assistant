@@ -7,8 +7,6 @@ class LLM:
 
         response = completion(
             model="ollama/deepseek-r1:1.5b",
-            # api_key= os.getenv("DEEPSEEK_API_KEY"),
-            # api_base= os.getenv("DEEPSEEK_BASE_URL"),
             messages=[
                 {
                     "role": "user",

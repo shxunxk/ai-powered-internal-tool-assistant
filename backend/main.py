@@ -2,9 +2,9 @@ from Tool import Tool
 from Agent import Agent
 from llm.llmSetUp import LLM
 from tools import search_code, search_docs, search_records, summarize
-import json
 from llmOps.prompts import prompt_registry
-from router.agent_registery import agent_registry
+from router.agent_registery import AgentRegistery
+from router.router_setup import Router
 
 if __name__ == "__main__":
 
@@ -16,9 +16,18 @@ if __name__ == "__main__":
     "selected_tool": None,
     "context": None,
     "final_answer": None,
+    "messages": [],
+    "status": "routing"
     }
 
     llm = LLM()
+
+
+    result = llm.generate("Say hello in one sentence.")
+
+    print(result)
+
+    agent_registery = AgentRegistery()
 
     docs_agent_tools = [
         Tool(search_docs),
@@ -32,9 +41,9 @@ if __name__ == "__main__":
         Tool(search_records),
     ]
 
-    summarize_agent_tools = [
-        Tool(summarize)
-    ]
+    # summarize_agent_tools = [
+    #     Tool(summarize)
+    # ]
 
 
 
@@ -44,32 +53,43 @@ if __name__ == "__main__":
     # ]
 
 
-    agent_registry.register(Agent(
+    agent_registery.register(Agent(
         tools=docs_agent_tools,
+        name = "docs_agent", 
+        description="Retrieves and analyzes information from internal documents, policies, manuals, and knowledge bases.",
         llm=llm,
         prompt = prompt_registry.get_prompt("agent_reasoning"),
-        name = "docs_agent", 
-        description="Retrieves and analyzes information from internal documents, policies, manuals, and knowledge bases."
     ))
 
-    agent_registry.register(Agent(
+    agent_registery.register(Agent(
         tools=codebase_agent_tools,
+        name = "codebase_agent",
+        description = "Searches, analyzes, and explains source code, software architecture, implementations, dependencies, and code-related issues.",
         llm=llm,
         prompt = prompt_registry.get_prompt("agent_reasoning"),
-        name = "codebase_agent",
-        description = "Searches, analyzes, and explains source code, software architecture, implementations, dependencies, and code-related issues."
         ))
 
-    agent_registry.register(Agent(
+    agent_registery.register(Agent(
         tools = records_agent_tools,
-        prompt = prompt_registry.get_prompt("agent_summary"),
         name = "records_agent",
-        description="Retrieves and summarizes structured records and data, including user, business, transactional, or system records."
+        description="Searches, analyzes, and explains incidents, events, logs and metrics.",
+        llm = llm,
+        prompt = prompt_registry.get_prompt("agent_reasoning"),
     ))
+# Focus areas: Python Systems Engineering, Agentic & LLMs Architecture, Production Ownership, Secure Engineering
+    # agent_registery.register(Agent(
+    #     tools = summarize_agent_tools,
+    #     name = "summarize_agent",
+    #     description="Retrieves and summarizes structured records and data, including user, business, transactional, or system records.",
+    #     prompt = prompt_registry.get_prompt("agent_summary"),
+    # ))
 
+    router = Router(
+        agent_registery=agent_registery,
+        llm=llm,
+        prompt=prompt_registry.get_prompt("agent_router")
+        )
 
-
-    
 
     # policy_agent = Agent(
     #     tools = policy_agent_tools,
@@ -80,10 +100,12 @@ if __name__ == "__main__":
     
     state["user_query"] = user_query
 
-    
+    result = router.route(
+    "Where is JWT validation implemented?"
+    )
 
     # state = retrieval_agent.run(state)
 
     print("\nRetrieved:\n",state["history"])
 
-    print("\nFinal:\n",final_answer["final_answer"])
+    print("\nFinal:\n", result["final_answer"])

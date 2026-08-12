@@ -2,7 +2,7 @@ import json
 
 class Agent:
 
-    def __init__(self, tools, llm=None, prompt="Perform task demanded by the user", name, description):
+    def __init__(self, tools, name, description, llm=None, prompt="Perform task demanded by the user"):
 
         self.name = name
         self.description = description
@@ -45,14 +45,15 @@ class Agent:
             except KeyError:
                 formatted_prompt = self.prompt
 
+            print("Hi")
             response = self.llm.generate(formatted_prompt)
-            
+            print("esponse 1", response)
             firstOcc = response.find("{")
             lastOcc = response.rfind("}")
 
             response = response[firstOcc:lastOcc+1]
 
-            print(response)
+            print("This is respone", response)
             parsed = json.loads(response)
 
             if(parsed.get("thought") is None):

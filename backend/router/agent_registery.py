@@ -1,16 +1,19 @@
-class AgentRegistry:
+class AgentRegistery:
 
     def __init__(self):
         self.agents = {}
 
     def register(self, agent):
-        self.agents[agent.name] = agent.description
+        self.agents[agent.name] = agent
 
     def get(self, name):
         return self.agents.get(name)
 
-    def descriptions(self):
-        return {
-            name: agent.description()
-            for name, agent in self.agents.items()
-        }
+    def description(self):
+        result = {}
+
+        for agent in self.agents:
+            print(agent)
+            result[agent] = self.agents[agent].description
+
+        return result

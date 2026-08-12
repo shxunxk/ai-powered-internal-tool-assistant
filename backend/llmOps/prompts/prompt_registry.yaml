@@ -14,3 +14,11 @@ prompts:
         file: "agent_summary.md"
         created_date: "2026-07-28"
         description: "Agent summary generation prompt"
+
+  agent_router:
+    current_version: "v1"
+    versions:
+      v1:
+        file: "agent_router.md"
+        created_date: "2026-08-12"
+        description: "Agent routing"
