@@ -2,8 +2,10 @@ import json
 
 class Agent:
 
-    def __init__(self, tools, llm=None, prompt="Perform task demanded by the user"):
+    def __init__(self, tools, llm=None, prompt="Perform task demanded by the user", name, description):
 
+        self.name = name
+        self.description = description
         self.llm = llm
         self.tools = {
             tool.name: tool
