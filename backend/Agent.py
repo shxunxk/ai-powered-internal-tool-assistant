@@ -24,51 +24,109 @@ class Agent:
     def _run_reAct(self, state):
 
         MAX_STEPS = 5
-        i = 0
 
-        while i<MAX_STEPS:
+        for _ in range(MAX_STEPS):
 
-            tool_metadata = []
-
-            for tool in self.tools.values():
-
-                tool_metadata.append({
+            tool_metadata = [
+                {
                     "name": tool.name,
                     "description": tool.description
+                }
+                for tool in self.tools.values()
+            ]
+
+            formatted_prompt = self.prompt.format(
+                state=json.dumps(state, indent=2),
+                tool_metadata=json.dumps(tool_metadata, indent=2)
+            )
+
+            response = self.llm.generate(formatted_prompt).strip()
+
+            print("\n========== RESPONSE ==========")
+            print(response)
+
+            first = response.find("{")
+            last = response.rfind("}")
+
+            if first == -1 or last == -1:
+                state["history"].append({
+                    "type": "error",
+                    "content": "LLM did not return JSON",
+                    "raw_response": response
                 })
+                continue
 
             try:
-                formatted_prompt = self.prompt.format(
-                    state=json.dumps(state, indent=2),
-                    tool_metadata=json.dumps(tool_metadata, indent=2)
+                parsed = json.loads(
+                    response[first:last + 1]
                 )
-            except KeyError:
-                formatted_prompt = self.prompt
+            except json.JSONDecodeError:
+                state["history"].append({
+                    "type": "error",
+                    "content": "Invalid JSON from LLM",
+                    "raw_response": response
+                })
+                continue
 
-            print("Hi")
-            response = self.llm.generate(formatted_prompt)
-            print("esponse 1", response)
-            firstOcc = response.find("{")
-            lastOcc = response.rfind("}")
+            # THOUGHT
+            thought = parsed.get("thought")
 
-            response = response[firstOcc:lastOcc+1]
-
-            print("This is respone", response)
-            parsed = json.loads(response)
-
-            if(parsed.get("thought") is None):
+            if not thought:
+                state["history"].append({
+                    "type": "error",
+                    "content": "Missing thought",
+                    "response": parsed
+                })
                 continue
 
             state["history"].append({
                 "type": "thought",
-                "content": parsed["thought"]
+                "content": thought
             })
-            # STOP CONDITION
-            if parsed.get("action") is None:
+
+            # FINISH
+            action = parsed.get("action")
+
+            if action is None:
+
+                state["history"].append({
+                    "type": "final",
+                    "content": parsed.get("final_answer")
+                })
+
+                state["status"] = "completed"
+
                 return state
-            
-            tool_name = parsed["action"]["tool"]
+
+
+            # TOOLS
+            tool_name = action.get("tool")
+
+            if not tool_name:
+
+                state["history"].append({
+                    "type": "error",
+                    "content": "LLM returned empty tool name",
+                    "response": parsed
+                })
+
+                continue
+
+            if tool_name not in self.tools:
+
+                state["history"].append({
+                    "type": "error",
+                    "content": f"Unknown tool: {tool_name}",
+                    "available_tools": list(self.tools.keys())
+                })
+
+                continue
+
+            state["selected_tool"] = tool_name
+            state["status"] = "tool_execution"
+
             tool = self.tools[tool_name]
+
             state = tool.func(state)
 
             state["history"].append({
@@ -77,9 +135,10 @@ class Agent:
                 "result": state["tool_outputs"].get(tool_name)
             })
 
-            i=i+1
+            state["status"] = "agent_execution"
 
         return state
+
 
     def _run_sequential(self, state):
 
