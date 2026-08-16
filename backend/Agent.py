@@ -1,5 +1,7 @@
 import json
 
+from sentence_transformers.util import retrieval
+
 class Agent:
 
     def __init__(self, tools, name, description, llm=None, prompt="Perform task demanded by the user"):
@@ -12,6 +14,7 @@ class Agent:
             for tool in tools
         }
         self.prompt = prompt
+        self.retrieved = None
 
     def run(self, state):
 
@@ -23,7 +26,7 @@ class Agent:
 
     def _run_reAct(self, state):
 
-        MAX_STEPS = 5
+        MAX_STEPS = 10
 
         for _ in range(MAX_STEPS):
 
@@ -49,6 +52,7 @@ class Agent:
             last = response.rfind("}")
 
             if first == -1 or last == -1:
+                print("In not found JSON")
                 state["history"].append({
                     "type": "error",
                     "content": "LLM did not return JSON",
@@ -61,6 +65,7 @@ class Agent:
                     response[first:last + 1]
                 )
             except json.JSONDecodeError:
+                print("In not found JSON correct format")
                 state["history"].append({
                     "type": "error",
                     "content": "Invalid JSON from LLM",
@@ -72,6 +77,7 @@ class Agent:
             thought = parsed.get("thought")
 
             if not thought:
+                print("In not found thought")
                 state["history"].append({
                     "type": "error",
                     "content": "Missing thought",
@@ -86,16 +92,13 @@ class Agent:
 
             # FINISH
             action = parsed.get("action")
-
             if action is None:
-
+                print("In not found action")
                 state["history"].append({
                     "type": "final",
-                    "content": parsed.get("final_answer")
+                    "agent_output": self.retrieved
                 })
-
                 state["status"] = "completed"
-
                 return state
 
 
@@ -103,7 +106,7 @@ class Agent:
             tool_name = action.get("tool")
 
             if not tool_name:
-
+                print("In not found tool")
                 state["history"].append({
                     "type": "error",
                     "content": "LLM returned empty tool name",
@@ -113,7 +116,7 @@ class Agent:
                 continue
 
             if tool_name not in self.tools:
-
+                print("In not found tool in tool set")
                 state["history"].append({
                     "type": "error",
                     "content": f"Unknown tool: {tool_name}",
@@ -127,23 +130,28 @@ class Agent:
 
             tool = self.tools[tool_name]
 
-            state = tool.func(state)
+            self.retrieved = tool.func(state)
 
             state["history"].append({
-                "type": "observation",
+                "type": "tool_observation",
                 "tool": tool_name,
-                "result": state["tool_outputs"].get(tool_name)
+                "result": self.retrieved
             })
-
             state["status"] = "agent_execution"
 
         return state
 
 
     def _run_sequential(self, state):
+        state["status"] = "agent_execution"
 
         for _, tool in self.tools.items():
-
-            state = tool.func(state)
-
+            state["status"] = "tool_execution"
+            self.retrieved = tool.func(state)
+            state["history"].append({
+                "type": "agent_output",
+                "tool": tool.name,
+                "result": self.retrieved
+            })
+            state["status"] = "completed"
         return state

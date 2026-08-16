@@ -17,9 +17,8 @@ if __name__ == "__main__":
     "tool_outputs": {},
     "selected_tool": None,
     "context": None,
-    "final_answer": None,
     "messages": [],
-    "status": "routing"
+    "status": "routing",
     }
 
     #Instances
@@ -41,9 +40,10 @@ if __name__ == "__main__":
     records_agent_tools = [
         Tool(search_records),
     ]
-    # summarize_agent_tools = [
-    #     Tool(summarize)
-    # ]
+    
+    summarize_agent_tools = [
+        Tool(summarize)
+    ]
     # policy_agent_tools = [
     #     Tool(search_policy),
     #     Tool(summarize)
@@ -75,12 +75,12 @@ if __name__ == "__main__":
         prompt = prompt_registry.get_prompt("agent_reasoning"),
     ))
 
-    # agent_registery.register(Agent(
-    #     tools = summarize_agent_tools,
-    #     name = "summarize_agent",
-    #     description="Retrieves and summarizes structured records and data, including user, business, transactional, or system records.",
-    #     prompt = prompt_registry.get_prompt("agent_summary"),
-    # ))
+    agent_registery.register(Agent(
+        tools = summarize_agent_tools,
+        name = "summarize_agent",
+        description="Retrieves and summarizes structured records and data, including user, business, transactional, or system records.",
+        prompt = prompt_registry.get_prompt("agent_summary"),
+    ))
 
     # policy_agent = Agent(
     #     tools = policy_agent_tools,
@@ -135,13 +135,14 @@ if __name__ == "__main__":
     graph.addNode("docs_agent")
     graph.addNode("codebase_agent")
     graph.addNode("records_agent")
+    graph.addNode("summarize_agent")
 
     graph.addConditionalEdges("start", retrievalCondition)
 
-    graph.addEdge("docs_agent", "end")
-    graph.addEdge("codebase_agent", "end")
-    graph.addEdge("records_agent", "end")
-    # graph.addNode(agent_registery.get("summary_agent"))
+    graph.addEdge("docs_agent", "summarize_agent")
+    graph.addEdge("codebase_agent", "summarize_agent")
+    graph.addEdge("records_agent", "summarize_agent")
+    graph.addEdge("summarize_agent", "end")
 
 
 
@@ -152,6 +153,4 @@ if __name__ == "__main__":
 
     state = graph.start(state)
 
-    print("\nRetrieved:\n",state["history"])
-
-    print("\nFinal:\n", state["final_answer"])
+    print("\nFinal:\n", state["history"][-1]["result"])

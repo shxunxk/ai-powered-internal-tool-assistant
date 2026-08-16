@@ -5,7 +5,7 @@ reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 
 def retriever(query, top_k=10):
-
+    print("In retriever")
     query_vector = generate_embeddings(query)
 
     results = index.query(

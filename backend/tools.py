@@ -15,12 +15,7 @@ def search_code(state):
 
     result = retriever(state["user_query"])
 
-    return {**state, "retrieved_data": result, "tool_outputs": {
-
-        **state.get("tool_outputs", {}),
-
-        "search_code": result
-    }}
+    return result
 
 
 def search_records(state):
@@ -34,15 +29,10 @@ def search_records(state):
     - crashes
     - latency investigations
     """
-
+    print("In search_code")
     result = retriever(state["user_query"])
 
-    return {**state, "retrieved_data": result, "tool_outputs": {
-
-        **state.get("tool_outputs", {}),
-
-        "search_code": result
-    }}
+    return result
 
 
 def search_docs(state):
@@ -59,12 +49,7 @@ def search_docs(state):
 
     result = retriever(state["user_query"])
 
-    return {**state, "retrieved_data": result, "tool_outputs": {
-
-        **state.get("tool_outputs", {}),
-
-        "search_code": result
-    }}
+    return result
 
 
 def summarize(state):
@@ -126,4 +111,4 @@ def summarize(state):
 
     result = llm.generate(prompt)
 
-    return {**state, "final_answer": result}
+    return result

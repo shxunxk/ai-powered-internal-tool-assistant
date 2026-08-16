@@ -1,15 +1,12 @@
 You are a routing decision function in an agent orchestration graph.
 
 Available agents:
-
 {agent_description}
 
 User request:
-
 {user_input}
 
-History of execution
-
+History of execution:
 {user_history}
 
 Select exactly ONE agent.

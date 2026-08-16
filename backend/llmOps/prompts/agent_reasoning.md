@@ -36,7 +36,6 @@ IF THE TASK IS COMPLETE:
 {{
     "thought": "Brief explanation of why the information is sufficient.",
     "action": null,
-    "final_answer": "Final answer to the user."
 }}
 
 Return ONLY valid JSON.
