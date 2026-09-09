@@ -1,3 +1,6 @@
+from backend.llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
+from backend.security.firewalls.inputSecurityLayer import inputSecLayer
+
 class Graph:
 
     def __init__(self, agent_registery):
@@ -20,6 +23,14 @@ class Graph:
         self.nodes[node] = None
     
     def start(self, state):
+        res = inputSecLayer(state["user_query"])
+        if res is None:
+            state["status"] = "security_violation"
+            state["messages"].append({
+                "role": "router",
+                "message": "Input security violation detected. The query may contain prompt injection or jailbreak attempts."
+            })
+            return state
         node = "start"
         while node != "end":
             next_node = self.nodes[node]

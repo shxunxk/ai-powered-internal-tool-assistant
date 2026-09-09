@@ -1,6 +1,7 @@
 from llm.llmSetUp import LLM
+from llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
 
-llm = LLM()
+# llm = LLM()
 
 def inputSecLayer(input: str) -> str:
     """
@@ -10,19 +11,9 @@ def inputSecLayer(input: str) -> str:
     specific security measures based on the application's requirements.
     """
     normalized_input = input.strip().lower()
-    
-    rule_based_checks = [
-        # Example rule-based checks (to be implemented)
-    ]
 
-    for i in rule_based_checks:
-        if not i(normalized_input):
-            raise ValueError("Input failed security checks.")
+    result = PromptInjectionAndJailbreakDetector(normalized_input).detect_prompt_injection_or_jailbreak()
 
-    check_prompt = f"Please check the following input for security issues: {normalized_input}. If it is safe, return 'safe'. If it is unsafe, return 'unsafe' with a brief explanation."
-    response = llm.generate(check_prompt)
-
-    if "unsafe" == response.lower():
-        raise ValueError(f"Input failed security checks: {response}")
-
+    if result:
+        return None
     return input

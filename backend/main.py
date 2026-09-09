@@ -127,7 +127,7 @@ def run_query(user_query: str):
         "messages": [],
         "status": "routing",
     }
-
+    
     final_state = graph.start(state)
     history = final_state.get("history", [])
 
