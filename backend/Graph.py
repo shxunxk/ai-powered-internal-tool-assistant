@@ -1,4 +1,6 @@
 from backend.llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
+from backend.security.agentSec.agentIpLayer import detect_ip_security_issues
+from backend.security.agentSec.agentOpLayer import detect_op_security_issues
 from backend.security.firewalls.inputSecurityLayer import inputSecLayer
 
 class Graph:
@@ -19,8 +21,12 @@ class Graph:
         else:
             print("Error2")
 
+
+
     def addNode(self, node):
         self.nodes[node] = None
+
+
     
     def start(self, state):
         res = inputSecLayer(state["user_query"])
@@ -51,7 +57,26 @@ class Graph:
             if agent is None:
                 raise ValueError(f"Agent '{node}' not found")
 
+            res = detect_ip_security_issues(state["user_query"])
+            if res["contains_pii"] or res["contains_code_compromise"] or res["contains_prompt_injection_or_jailbreak"]:
+                state["status"] = "security_violation"
+                state["messages"].append({
+                    "role": "router",
+                    "message": "Input security violation detected. The query may contain PII, code compromise, or prompt injection/jailbreak attempts."
+                })
+                return state
+            
             state = agent.run(state)
+
+            res = detect_op_security_issues(state["user_query"])
+            if res["contains_code_compromise"] or res["contains_prompt_injection_or_jailbreak"] or res["contains_code_compromise"]:
+                state["status"] = "security_violation"
+                state["messages"].append({
+                    "role": "router",
+                    "message": "Output security violation detected. The agent's output may contain code compromise or prompt injection/jailbreak attempts."
+                })
+                return state
+            
             if(node == "end" or node == None):
                 state["status"] = "complete"
                 break
