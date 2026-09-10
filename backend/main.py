@@ -4,14 +4,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 import json
 
-from Tool import Tool
-from Agent import Agent
-from llm.llmSetUp import LLM
-from tools import search_code, search_docs, search_records, summarize
+from backend.Tool import Tool
+from backend.Agent import Agent
+from backend.llm.llmSetUp import LLM
+from backend.tools import search_code, search_docs, search_records, summarize
 from backend.prompts import prompt_registry
-from router.agent_registery import AgentRegistery
-from Graph import Graph
-from rag.ingest import ingest_github_repository
+from backend.router.agent_registery import AgentRegistery
+from backend.Graph import Graph
+from backend.rag.ingest import ingest_github_repository
 
 app = FastAPI(title="AI Internal Tool Assistant")
 app.add_middleware(
@@ -37,6 +37,10 @@ class QueryResponse(BaseModel):
 class RepositorySummaryRequest(BaseModel):
     repo_url: str
     query: str = "Summarize this GitHub repository, including its purpose, architecture, and main components."
+
+
+class RepositoryIndexRequest(BaseModel):
+    repo_url: str
 
 
 def build_graph():
@@ -184,6 +188,17 @@ def summarize_repository(request: RepositorySummaryRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Repository summary failed: {exc}") from exc
+
+
+@app.post("/api/repository/index")
+def index_repository(request: RepositoryIndexRequest):
+    try:
+        ingest_github_repository(request.repo_url, replace=True)
+        return {"status": "indexed", "repo_url": request.repo_url}
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Repository indexing failed: {exc}") from exc
 
 
 if __name__ == "__main__":

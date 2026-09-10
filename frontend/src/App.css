@@ -14,6 +14,11 @@
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.28);
 }
 
+.panel {
+  display: grid;
+  gap: 30px;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   letter-spacing: 0.12em;
@@ -26,6 +31,46 @@ h1,
 h2 {
   margin: 0 0 20px;
   color: #f8fafc;
+}
+
+h1 {
+  font-size: 48px;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.section-heading p {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.section-mark {
+  color: #60a5fa;
+  font: 700 12px/1.5 ui-monospace, Consolas, monospace;
+  padding-top: 3px;
+}
+
+.repository-form,
+.query-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.repository-form {
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .query-form {
@@ -52,11 +97,30 @@ h2 {
   box-sizing: border-box;
 }
 
+.repository-form input,
+.repository-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+  font: inherit;
+}
+
+.repository-form input:focus,
+.repository-form textarea:focus {
+  outline: 2px solid #60a5fa;
+  border-color: #60a5fa;
+}
+
 .query-form textarea:focus {
   outline: 2px solid #60a5fa;
   border-color: #60a5fa;
 }
 
+.repository-form button,
 .query-form button {
   align-self: flex-start;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
@@ -70,10 +134,12 @@ h2 {
   transition: transform 0.2s ease;
 }
 
+.repository-form button:hover,
 .query-form button:hover {
   transform: translateY(-1px);
 }
 
+.repository-form button:disabled,
 .query-form button:disabled {
   opacity: 0.7;
   cursor: wait;
@@ -88,8 +154,50 @@ h2 {
   font-family: inherit;
 }
 
+.result-panel {
+  display: grid;
+  gap: 28px;
+}
+
+.result-block + .result-block {
+  padding-top: 24px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.result-label {
+  margin-bottom: 10px;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    width: min(100% - 20px, 900px);
+    margin: 20px auto;
+  }
+
+  .panel,
+  .result-panel {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 34px;
+  }
+}
+
 .error-message {
   margin: 0;
   color: #fda4af;
   font-weight: 600;
+}
+
+.success-message {
+  margin: 0;
+  color: #86efac;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }

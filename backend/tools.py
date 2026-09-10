@@ -1,5 +1,5 @@
-from llm.llmSetUp import LLM
-from rag.retriever import retriever
+from backend.llm.llmSetUp import LLM
+from backend.rag.retriever import retriever
 
 def search_code(state):
     """

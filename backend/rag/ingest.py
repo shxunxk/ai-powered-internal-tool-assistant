@@ -1,18 +1,22 @@
 from pathlib import Path
 import json
 import argparse
-import subprocess
+import io
 import tempfile
+import urllib.error
+import urllib.request
+import zipfile
+from urllib.parse import urlparse
 import yaml
 
-from chunkers import (
+from backend.rag.chunkers import (
     chunk_python,
     chunk_markdown,
     chunk_json,
     yaml_chunk
 )
 
-from vectorDB import clear_store, generate_embeddings, upsert_vectors
+from backend.rag.vectorDB import clear_store, generate_embeddings, upsert_vectors
 
 BASE = Path(__file__).resolve().parents[2]
 
@@ -71,22 +75,46 @@ def ingest_directory(data_dir, doc_type="github"):
 
 
 def ingest_github_repository(repo_url, replace=True):
-    """Clone a public GitHub repository and index its supported files."""
-    if "github.com" not in repo_url:
+    """Download a public GitHub archive and index it without cloning."""
+    parsed_url = urlparse(repo_url.strip())
+    if parsed_url.netloc.lower() not in {"github.com", "www.github.com"}:
         raise ValueError("repo_url must point to a GitHub repository")
+
+    parts = [part for part in parsed_url.path.split("/") if part]
+    if len(parts) != 2:
+        raise ValueError("repo_url must look like https://github.com/owner/repository")
+
+    owner, repository = parts
+    repository = repository.removesuffix(".git")
+    archive_url = f"https://codeload.github.com/{owner}/{repository}/zip/HEAD"
 
     if replace:
         clear_store()
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        result = subprocess.run(
-            ["git", "clone", "--depth", "1", repo_url, temp_dir],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode:
-            raise RuntimeError(result.stderr.strip() or "Git clone failed")
-        ingest_directory(Path(temp_dir), doc_type="github")
+        try:
+            request = urllib.request.Request(
+                archive_url,
+                headers={"User-Agent": "AI-Internal-Tool-Assistant"},
+            )
+            with urllib.request.urlopen(request, timeout=60) as response:
+                archive = response.read()
+        except urllib.error.HTTPError as error:
+            raise RuntimeError(f"GitHub archive download failed: HTTP {error.code}") from error
+        except urllib.error.URLError as error:
+            raise RuntimeError(f"GitHub archive download failed: {error.reason}") from error
+
+        try:
+            with zipfile.ZipFile(io.BytesIO(archive)) as archive_file:
+                archive_file.extractall(temp_dir)
+        except zipfile.BadZipFile as error:
+            raise RuntimeError("GitHub returned an invalid repository archive") from error
+
+        extracted_root = next(Path(temp_dir).iterdir(), None)
+        if extracted_root is None:
+            raise RuntimeError("GitHub repository archive was empty")
+
+        ingest_directory(extracted_root, doc_type="github")
 
 
 def ingest_local_data():

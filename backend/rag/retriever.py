@@ -1,7 +1,14 @@
-from sentence_transformers import SentenceTransformer, CrossEncoder
-from rag.vectorDB import index, generate_embeddings
+from sentence_transformers import CrossEncoder
+from backend.rag.vectorDB import index, generate_embeddings
 
-reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+reranker = None
+
+
+def _get_reranker():
+    global reranker
+    if reranker is None:
+        reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    return reranker
 
 
 def retriever(query, top_k=10):
@@ -31,7 +38,7 @@ def retriever(query, top_k=10):
         metadatas.append(meta)
 
     pairs = [(query, doc) for doc in docs]
-    scores = reranker.predict(pairs)
+    scores = _get_reranker().predict(pairs)
 
     reranked = sorted(
         zip(docs, metadatas, scores),

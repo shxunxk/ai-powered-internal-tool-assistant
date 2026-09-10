@@ -11,7 +11,14 @@ STORE_DIR = Path(__file__).resolve().parent / "faiss_store"
 INDEX_PATH = STORE_DIR / "index.faiss"
 METADATA_PATH = STORE_DIR / "metadata.json"
 
-model = SentenceTransformer(MODEL_NAME)
+model = None
+
+
+def _get_model():
+	global model
+	if model is None:
+		model = SentenceTransformer(MODEL_NAME)
+	return model
 
 
 def generate_embeddings(documents):
@@ -19,7 +26,7 @@ def generate_embeddings(documents):
 	if isinstance(documents, str):
 		documents = [documents]
 
-	return model.encode(
+	return _get_model().encode(
 		documents,
 		convert_to_numpy=True,
 		normalize_embeddings=True,
@@ -33,7 +40,7 @@ def _load_store():
 			METADATA_PATH.read_text(encoding="utf-8")
 		)
 
-	return faiss.IndexFlatIP(model.get_sentence_embedding_dimension()), []
+	return faiss.IndexFlatIP(_get_model().get_sentence_embedding_dimension()), []
 
 
 class FaissIndex:

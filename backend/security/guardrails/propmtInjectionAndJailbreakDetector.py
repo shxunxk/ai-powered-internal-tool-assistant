@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from llm.llmSetUp import LLM
+from backend.llm.llmSetUp import LLM
 
 llm = LLM()
 
