@@ -100,7 +100,10 @@ def build_graph():
             user_input=state["user_query"],
             user_history=state["history"],
         )
-        result = llm.generate(formatted_prompt)
+        result = llm.generate(formatted_prompt).strip()
+
+        if result.startswith("`") and result.endswith("`"):
+            result = result.strip("`").strip()
 
         if result not in agent_registery.agents:
             raise ValueError(f"Invalid agent selected: {result}")
@@ -126,8 +129,11 @@ def build_graph():
     return graph
 
 
+graph = build_graph()
+
+
 def run_query(user_query: str):
-    graph = build_graph()
+    print(f"Received query: {user_query}")
     state = {
         "user_query": user_query,
         "history": [],
@@ -204,4 +210,4 @@ def index_repository(request: RepositoryIndexRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)

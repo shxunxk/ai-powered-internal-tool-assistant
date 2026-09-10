@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './App.css'
 
 async function readResponse(response) {
@@ -23,6 +23,7 @@ function App() {
   const [indexedRepo, setIndexedRepo] = useState('')
   const [error, setError] = useState('')
   const [indexError, setIndexError] = useState('')
+  const questionRequestInFlight = useRef(false)
 
   const handleIndexSubmit = async (event) => {
     event.preventDefault()
@@ -54,11 +55,14 @@ function App() {
 
   const handleQuestionSubmit = async (event) => {
     event.preventDefault()
+    if (questionRequestInFlight.current) return
+
     if (!query.trim()) {
       setError('Please enter a question.')
       return
     }
 
+    questionRequestInFlight.current = true
     setLoading(true)
     setError('')
     try {
@@ -73,6 +77,7 @@ function App() {
     } catch (err) {
       setError(err.message)
     } finally {
+      questionRequestInFlight.current = false
       setLoading(false)
     }
   }
@@ -110,8 +115,8 @@ function App() {
           </div>
           <label htmlFor="user-query">Question</label>
           <textarea id="user-query" rows="5" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ask about the indexed repository..." />
-          <button type="submit" disabled={loading || !indexedRepo}>
-            {loading ? 'Finding answer...' : 'Ask question'}
+          <button type="submit" className={loading ? 'is-loading' : ''} disabled={loading || !indexedRepo}>
+            {loading ? 'Finding answer...' : indexedRepo ? 'Ask question' : 'Index repository first'}
           </button>
         </form>
       </section>

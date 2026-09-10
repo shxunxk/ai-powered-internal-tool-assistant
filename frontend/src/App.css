@@ -142,6 +142,10 @@ h2 {
 .repository-form button:disabled,
 .query-form button:disabled {
   opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.query-form button.is-loading {
   cursor: wait;
 }
 

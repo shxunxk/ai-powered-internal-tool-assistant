@@ -24,6 +24,7 @@ Valid outputs are ONLY:
 docs_agent
 codebase_agent
 records_agent
+summarize_agent
 
 Example:
 

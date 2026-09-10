@@ -29,6 +29,7 @@ class Graph:
 
     
     def start(self, state):
+        print(f"Graph started")
         res = inputSecLayer(state["user_query"])
         if res is None:
             state["status"] = "security_violation"
@@ -82,4 +83,5 @@ class Graph:
                 break
             state["status"] = "routing"
             node = next_node
+        print(f"Graph completed")
         return state
