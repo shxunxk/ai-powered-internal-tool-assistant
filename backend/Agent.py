@@ -130,6 +130,7 @@ class Agent:
 
             tool = self.tools[tool_name]
 
+            
             self.retrieved = tool.func(state)
 
             state["history"].append({

@@ -1,7 +1,9 @@
 from pathlib import Path
 import json
+import argparse
+import subprocess
+import tempfile
 import yaml
-import time
 
 from chunkers import (
     chunk_python,
@@ -10,7 +12,7 @@ from chunkers import (
     yaml_chunk
 )
 
-from vectorDB import generate_embeddings, upsert_vectors
+from vectorDB import clear_store, generate_embeddings, upsert_vectors
 
 BASE = Path(__file__).resolve().parents[2]
 
@@ -19,6 +21,8 @@ DATA_DIRS = [
     {"path": BASE / "data/docs", "type": "docs"},
     {"path": BASE / "data/records", "type": "records"},
 ]
+
+SUPPORTED_SUFFIXES = {".py", ".md", ".yml", ".yaml", ".json", ".js", ".jsx", ".ts", ".tsx"}
 
 
 def safe_read(file):
@@ -30,20 +34,10 @@ def safe_read(file):
         return None
 
 
-for data in DATA_DIRS:
-
-    print(f"\n📦 Processing: {data['type']}")
-
-    data_dir = data["path"]
-    doc_type = data["type"]
-
-    if not data_dir.exists():
-        print(f"⚠️ Missing dir: {data_dir}")
-        continue
-
+def ingest_directory(data_dir, doc_type="github"):
+    """Chunk and add supported text files from a directory to FAISS."""
     for file in data_dir.rglob("*"):
-
-        if not file.is_file():
+        if not file.is_file() or ".git" in file.parts or file.suffix.lower() not in SUPPORTED_SUFFIXES:
             continue
 
         raw_content = safe_read(file)
@@ -51,58 +45,74 @@ for data in DATA_DIRS:
             continue
 
         suffix = file.suffix.lower()
-        chunks = []
-
         try:
             if suffix == ".py":
                 chunks = chunk_python(raw_content, str(file), doc_type)
-
             elif suffix == ".md":
                 chunks = chunk_markdown(raw_content, str(file), doc_type)
-
-            elif suffix in [".yml", ".yaml"]:
-                parsed = yaml.safe_load(raw_content)
-                chunks = yaml_chunk(parsed, str(file), doc_type)
-
+            elif suffix in {".yml", ".yaml"}:
+                chunks = yaml_chunk(yaml.safe_load(raw_content), str(file), doc_type)
             elif suffix == ".json":
-                parsed = json.loads(raw_content)
-                chunks = chunk_json(parsed, str(file), doc_type)
-
+                chunks = chunk_json(json.loads(raw_content), str(file), doc_type)
             else:
-                continue
-
-        except Exception as e:
-            print(f"❌ Chunking failed {file}: {e}")
+                chunks = chunk_markdown(raw_content, str(file), doc_type)
+        except Exception as error:
+            print(f"Skipping {file}: {error}")
             continue
 
         if not chunks:
             continue
 
-        print(f"📄 {file} -> {len(chunks)} chunks")
+        documents = [chunk["content"] for chunk in chunks]
+        metadatas = [chunk["metadata"] for chunk in chunks]
+        ids = [f"{file}_{index}" for index in range(len(chunks))]
+        upsert_vectors(ids, generate_embeddings(documents), metadatas)
+        print(f"Indexed {file} ({len(chunks)} chunks)")
 
-        documents = []
-        metadatas = []
-        ids = []
 
-        for idx,chunk in enumerate(chunks):
-            documents.append(chunk["content"])
-            metadatas.append(chunk["metadata"])
-            ids.append(f"{file}_{idx}")
+def ingest_github_repository(repo_url, replace=True):
+    """Clone a public GitHub repository and index its supported files."""
+    if "github.com" not in repo_url:
+        raise ValueError("repo_url must point to a GitHub repository")
 
-        try:
-            print("⚡ Generating embeddings...")
+    if replace:
+        clear_store()
 
-            embeddings = generate_embeddings(documents)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", repo_url, temp_dir],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode:
+            raise RuntimeError(result.stderr.strip() or "Git clone failed")
+        ingest_directory(Path(temp_dir), doc_type="github")
 
-            print("⚡ Uploading to Pinecone...")
 
-            upsert_vectors(ids, embeddings, metadatas)
+def ingest_local_data():
+    for data in DATA_DIRS:
 
-            print("✅ Uploaded successfully")
+        print(f"\n📦 Processing: {data['type']}")
 
-        except Exception as e:
-            print(f"❌ Pinecone insert failed: {e}")
+        data_dir = data["path"]
+        doc_type = data["type"]
 
-        time.sleep(0.1)
+        if not data_dir.exists():
+            print(f"⚠️ Missing dir: {data_dir}")
+            continue
 
-print("\n🎉 Ingestion Complete")
+        ingest_directory(data_dir, doc_type)
+
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description="Index local data or a GitHub repository into FAISS")
+	parser.add_argument("--repo-url", help="Public GitHub repository URL")
+	parser.add_argument("--append", action="store_true", help="Append instead of replacing the current index")
+	args = parser.parse_args()
+
+	if args.repo_url:
+		ingest_github_repository(args.repo_url, replace=not args.append)
+	else:
+		ingest_local_data()
+
+	print("\n🎉 Ingestion Complete")

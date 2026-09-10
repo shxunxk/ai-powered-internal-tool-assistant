@@ -8,9 +8,10 @@ from Tool import Tool
 from Agent import Agent
 from llm.llmSetUp import LLM
 from tools import search_code, search_docs, search_records, summarize
-from llmOps.prompts import prompt_registry
+from backend.prompts import prompt_registry
 from router.agent_registery import AgentRegistery
 from Graph import Graph
+from rag.ingest import ingest_github_repository
 
 app = FastAPI(title="AI Internal Tool Assistant")
 app.add_middleware(
@@ -31,6 +32,11 @@ class QueryResponse(BaseModel):
     answer: str
     status: str
     selected_agent: Optional[str] = None
+
+
+class RepositorySummaryRequest(BaseModel):
+    repo_url: str
+    query: str = "Summarize this GitHub repository, including its purpose, architecture, and main components."
 
 
 def build_graph():
@@ -167,6 +173,17 @@ def handle_query(request: QueryRequest):
         return run_query(request.query)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"AI query failed: {str(exc)}") from exc
+
+
+@app.post("/api/repository/summary", response_model=QueryResponse)
+def summarize_repository(request: RepositorySummaryRequest):
+    try:
+        ingest_github_repository(request.repo_url, replace=True)
+        return run_query(request.query)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Repository summary failed: {exc}") from exc
 
 
 if __name__ == "__main__":

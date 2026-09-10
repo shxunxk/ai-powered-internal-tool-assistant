@@ -1,4 +1,4 @@
-from backend.llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
+from backend.security.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
 from backend.security.agentSec.agentIpLayer import detect_ip_security_issues
 from backend.security.agentSec.agentOpLayer import detect_op_security_issues
 from backend.security.firewalls.inputSecurityLayer import inputSecLayer

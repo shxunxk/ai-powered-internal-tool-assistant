@@ -1,6 +1,6 @@
-from llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
-from llmOps.guardrails.personalIdentifiableInformation import PIIDetector
-from llmOps.guardrails.codeCompriseDetector import CodeCompromiseDetector
+from backend.security.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
+from backend.security.guardrails.personalIdentifiableInformation import PIIDetector
+from backend.security.guardrails.codeCompriseDetector import CodeCompromiseDetector
 
 def detect_ip_security_issues(text):
     """

@@ -1,5 +1,5 @@
 from llm.llmSetUp import LLM
-from llmOps.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
+from backend.security.guardrails.propmtInjectionAndJailbreakDetector import PromptInjectionAndJailbreakDetector
 
 # llm = LLM()
 
